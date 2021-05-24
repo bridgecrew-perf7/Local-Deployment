@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transfer
+  namespace: default
+  labels:
+    app: transfer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transfer
+  template:
+    metadata:
+      namespace: default
+      labels:
+        app: transfer
+    spec:
+      containers:
+      - name: transfer
+        image: jniestroy/transfer:0.3
+        imagePullPolicy: Always
+        command: ["python3", "transfer.py"]
+        ports:
+        - containerPort: 5002
+        env:
+        - name: MINIO_URL
+          value: "http://minio:9000"
+        - name: MINIO_KEY
+          value: "breakfast"
+        - name: MINIO_SECRET
+          value: "breakfast"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: ORS_URL
+          value: "http://mds/"
+        - name: AUTH_SERVICE
+          value: "http://auth"
+        - name: OS_URL
+          value: "http://object-service/"
+        - name: AUTH_KEY
+          value: "test secret"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transfer
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5002
+  selector:
+    app: transfer

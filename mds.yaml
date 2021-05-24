@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mds
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mds
+  template:
+    metadata:
+      namespace: default
+      labels:
+        app: mds
+    spec:
+      containers:
+      - name: mds
+        image: jackofsum/mds:0.1.17
+        ports:
+        - containerPort: 80
+        env:
+        - name: "STARDOG_URI"
+          value: "http://stardog:5820"
+        - name: "STARDOG_DATABASE"
+          value: "ors"
+        - name: "STARDOG_USERNAME"
+          value: "admin"
+        - name: "STARDOG_PASSWORD"
+          value: "admin"
+        - name: "MONGO_URI"
+          value: "mongodb://mongouser:mongosecret@mongo"
+        - name: "MONGO_DB"
+          value: "ors"
+        - name: "MONGO_COL"
+          value: "ids"
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mds
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: mds

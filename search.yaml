@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: search
+  namespace: default
+  labels:
+    app: search
+spec:
+  containers:
+  - name: search
+    imagePullPolicy: Always
+    image: jniestroy/search:0.1
+    env:
+      - name: STARDOG_USERNAME
+        value: admin
+      - name: STARDOG_URL
+        value: http://stardog:5820/
+      - name: STARDOG_PASSWORD
+        value: admin
+      - name: PYTHONUNBUFFERED
+        value: "0"
+      - name: ORS_URL
+        value: http://mds/
+      - name: AUTH_KEY
+        value: "test secret"
+    command:
+        - python3
+        - search.py
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5000
+  selector:
+    app: search

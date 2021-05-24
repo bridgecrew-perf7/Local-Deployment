@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eg
+  namespace: default
+  labels:
+    app: eg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eg
+  template:
+    metadata:
+      namespace: default
+      labels:
+        app: eg
+    spec:
+      containers:
+      - name: eg
+        image: jniestroy/eg
+        ports:
+        - containerPort: 5000
+        env:
+        - name: STARDOG_URL
+          value: "http://stardog:5820"
+        - name: STARDOG_USERNAME
+          value: "admin"
+        - name: STARDOG_PASSWORD
+          value: "admin"
+        - name: ORS_URL
+          value: "http://mds/"
+        - name: PYTHONUNBUFFERED
+          value: "0"
+        - name: "NO_AUTH"
+          value: "TRUE"
+        - name: AUTH_KEY
+          value: "test secret"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eg
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5000
+  selector:
+    app: eg

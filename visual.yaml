@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: visual
+  namespace: default
+  labels:
+    app: visual
+spec:
+  containers:
+  - name: visual
+    imagePullPolicy: Always
+    image: jniestroy/visual
+    ports:
+        - containerPort: 5000
+    env:
+      - name: PYTHONUNBUFFERED
+        value: "0"
+      - name: EG_URL
+        value: http://eg/
+      - name: AUTH_SERVICE
+        value: 'http://auth'
+      - name: AUTH_KEY
+        value: 'test secret'
+      - name: "NO_AUTH"
+        value: "TRUE"
+      - name: "LOCAL"
+        value: "TRUE"
+    command:
+        - python3
+        - "-u"
+        - main.py
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: visual
+  namespace: default
+  labels:
+    app: visual
+spec:
+  selector:
+    app: visual
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP

@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: create-pod
+  namespace: default
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-creator
+rules:
+- apiGroups: [""]
+  resources: ["pods","services","pods/log","pods/status"]
+  verbs: ["create","get", "list", "watch","delete"]
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: test2
+subjects:
+- kind: ServiceAccount
+  name: create-pod
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: pod-creator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: compute
+  namespace: default
+  labels:
+    app: compute
+spec:
+  serviceAccountName: create-pod
+  containers:
+  - name: computesubmit
+    imagePullPolicy: Always
+    image: jniestroy/compute:0.4
+    env:
+      - name: MINIO_URL
+        value: "minio:9000"
+      - name: MINIO_ACCESS_KEY
+        value: "breakfast"
+      - name: MINIO_SECRET
+        value: "breakfast"
+      - name: PYTHONUNBUFFERED
+        value: "0"
+      - name: ORS_URL
+        value: "http://mds/"
+      - name: TRANSFER_URL
+        value: "http://transfer/"
+      - name: AUTH_SERVICE
+        value: "http://auth"
+      - name: AUTH_KEY
+        value: "test secret"
+  - name: computetracker
+    imagePullPolicy: Always
+    env:
+      - name: MINIO_URL
+        value: "minio:9000"
+      - name: MINIO_ACCESS_KEY
+        value: "breakfast"
+      - name: MINIO_SECRET
+        value: "breakfast"
+      - name: PYTHONUNBUFFERED
+        value: "0"
+      - name: ORS_URL
+        value: "http://mds/"
+    image: jniestroy/sparktracker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compute
+  namespace: default
+  labels:
+    app: compute
+spec:
+  selector:
+    app: compute
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP

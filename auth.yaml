@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: default
+  labels:
+    app: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      namespace: default
+      labels:
+        app: auth
+    spec:
+     containers:
+     - name: auth
+       image: jniestroy/auth:0.2
+       imagePullPolicy: Always
+       ports:
+       - name: server
+         containerPort: 80
+       env:
+       - name: "GLOBUS_CLIENT_ID"
+         value: ""
+       - name: "GLOBUS_CLIENT_SECRET"
+         value: ""
+       - name: "GLOBUS_REDIRECT_URL"
+         value: ""
+       - name:  "MONGO_URI"
+         value: "mongodb://mongouser:mongosecret@mongo"
+       - name:  "MONGO_DB"
+         value: "users"
+       - name:  "MONGO_COL"
+         value: "users"
+       - name:  "ORS_URI"
+         value: "http://ors/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: auth
